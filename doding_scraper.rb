@@ -3,8 +3,27 @@ require 'httparty'
 require 'byebug'
 
 
-def parse_content content
+def parse_content parsed_page
 
+  # get the title of doding
+  title = parsed_page.css('h1.entry-title').children.text
+
+  # fetch parse the main content
+  main = parsed_page.css('div.entry-content')
+
+  # fetch the song from table
+  songs = main.css('td p')
+  song_list = Array.new
+  songs.each_with_index do |song, index|
+    song_list << song.children.text
+  end
+  
+  doding = {
+    'title': title,
+    'songs': song_list
+  }
+  puts doding
+  # byebug
 end
 
 def doding_scraper
@@ -12,6 +31,8 @@ def doding_scraper
   url = "https://dodinghaleluya.wordpress.com/doding-haleluya/puji-pujian/hal-1-jahowa-sihol-pujionku/"
 
   status = true
+
+  counter = 1
 
   while status == true
 
@@ -26,7 +47,7 @@ def doding_scraper
 
     # call parse function to parse the content
     # by sending content as parameter
-    parse_content content
+    parse_content parsed_page
 
     # fetch all available link from content
     links = content.css('td a').last
@@ -43,7 +64,12 @@ def doding_scraper
       url = next_link
       puts next_link
     end
-    #byebug
+
+    # treshold
+    if counter == 10
+      status = false
+    end
+    counter += 1
   end
 end
 
